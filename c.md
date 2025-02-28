@@ -450,7 +450,7 @@ int main(void) {
 - %x的意思是以十六进制显示
 - %3x：以十六进制显示，且3位对齐，不够用空格补齐
 
-- %0数字x跟%数字x的意思差不多，区别在于不够长度补0
+- %0x数字x跟%数字x的意思差不多，区别在于不够长度补0
 
 ---
 
@@ -780,6 +780,42 @@ else
 
         }while(0)\
     
+```
+
+```
+//几种 宏的用法
+
+#define PT_WAIT_UNTIL(pt, condition)	        \
+  do {						\
+    LC_SET((pt)->lc);				\
+    if(!(condition)) {				\
+      return PT_WAITING;			\
+    }						\
+  } while(0)
+
+
+#define PT_END(pt) LC_END((pt)->lc); PT_YIELD_FLAG = 0; \
+                   PT_INIT(pt); return PT_ENDED; }
+
+#define PT_BEGIN(pt) { char PT_YIELD_FLAG = 1; if (PT_YIELD_FLAG) {;} LC_RESUME((pt)->lc)
+
+# define atomic_cas(ptr, cmp, swp) ({ \
+  long flags = disable_irqsave(); \
+  typeof(*(ptr)) res = *(volatile typeof(*(ptr)) *)(ptr); \
+  if (res == (cmp)) *(volatile typeof(ptr))(ptr) = (swp); \
+  enable_irqrestore(flags); \
+  res; })
+
+
+#define __RV_CSR_READ_CLEAR(csr, val)                           \
+    ({                                                          \
+        register rv_csr_t __v = (rv_csr_t)(val);                \
+        __ASM volatile("csrrc %0, " STRINGIFY(csr) ", %1"       \
+                     : "=r"(__v)                                \
+                     : "rK"(__v)                                \
+                     : "memory");                               \
+        __v;                                                    \
+    })
 ```
 
 
